@@ -6,19 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', Arial, sans-serif;
       margin: 15px;
       background: #f5f5f5;
       color: #333;
     }
-
     .app {
       max-width: 800px;
       margin: 0 auto;
@@ -27,34 +21,28 @@
       border-radius: 12px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-
-    h1, h2 {
+    h1, h2 { text-align: center; color: #333; margin: 10px 0; }
+    h1 { font-size: 24px; }
+    #status-sync {
       text-align: center;
-      color: #333;
+      font-size: 13px;
+      color: #777;
       margin: 10px 0;
     }
-
-    h1 {
-      font-size: 24px;
-    }
-
     form {
       margin-bottom: 20px;
       background: #f9f9f9;
       padding: 18px;
       border-radius: 10px;
     }
-
     .form-row {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-
     .form-row > div {
       flex: 1 1 200px;
     }
-
     label {
       display: block;
       margin-bottom: 5px;
@@ -62,7 +50,6 @@
       font-weight: 500;
       color: #555;
     }
-
     input, button, select {
       width: 100%;
       padding: 10px;
@@ -70,34 +57,24 @@
       border-radius: 8px;
       font-size: 14px;
     }
-
-    button {
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
     button[type="submit"] {
       background: #007bff;
       color: white;
       border: none;
       font-weight: 500;
     }
-
     button[type="submit"]:hover {
       background: #0056b3;
     }
-
     .filter-container {
       text-align: center;
       margin: 15px 0;
     }
-
     .filter-container input {
       width: auto;
       display: inline-block;
       font-size: 14px;
     }
-
     .filter-container button {
       font-size: 14px;
       padding: 8px 12px;
@@ -105,7 +82,6 @@
       color: white;
       border: none;
     }
-
     .resumo {
       text-align: center;
       margin: 15px 0;
@@ -116,61 +92,49 @@
       color: #004085;
       font-size: 15px;
     }
-
-    #lista {
-      margin-top: 10px;
+    #carregando {
+      text-align: center;
+      padding: 20px;
+      color: #007bff;
+      font-style: italic;
     }
-
     .despesa, .parcela {
       background: #fff;
       margin: 8px 0;
       padding: 12px;
       border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .despesa {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-
-    .despesa {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .despesa > div {
-      width: 100%;
-    }
-
     .despesa-actions {
       align-self: flex-end;
     }
-
     .parcela {
+      display: flex;
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
       font-size: 14px;
     }
-
     .parcela.paga {
       text-decoration: line-through;
       color: green;
       background: #f0f8f0;
     }
-
     .total {
       font-weight: bold;
       color: #d9534f;
-      font-size: 15px;
     }
-
     .excluir-btn {
       background: #d9534f !important;
       color: white;
       padding: 6px 10px;
       font-size: 13px;
     }
-
     .msg {
       text-align: center;
       padding: 10px;
@@ -182,12 +146,10 @@
       font-style: italic;
       font-size: 14px;
     }
-
     .app-actions {
       text-align: center;
       margin: 20px 0;
     }
-
     .app-actions button {
       margin: 0 8px;
       padding: 10px 16px;
@@ -196,75 +158,34 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
     .btn-secondary {
       background: #6c757d;
       color: white;
     }
-
     .btn-secondary:hover {
       background: #5a6268;
     }
-
-    /* Responsividade */
     @media (max-width: 600px) {
-      body {
-        margin: 10px;
-      }
-
-      .app {
-        padding: 15px;
-        border-radius: 10px;
-      }
-
-      h1 {
-        font-size: 20px;
-      }
-
-      form {
-        padding: 15px;
-      }
-
-      .form-row > div {
-        flex: 1 1 100%;
-      }
-
-      input, button {
-        font-size: 14px;
-        padding: 9px;
-      }
-
+      body { margin: 10px; }
+      .app { padding: 15px; }
+      h1 { font-size: 20px; }
+      form { padding: 15px; }
+      .form-row > div { flex: 1 1 100%; }
       .parcela {
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
       }
-
       .parcela button {
         align-self: flex-start;
         margin-top: 4px;
       }
-
       .app-actions {
-        display: flex;
         flex-direction: column;
         gap: 10px;
       }
-
       .app-actions button {
         margin: 0;
-      }
-
-      .filter-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .filter-container input, .filter-container button {
-        width: 100%;
-        max-width: 250px;
       }
     }
   </style>
@@ -272,6 +193,7 @@
 <body>
   <div class="app">
     <h1>Controle de Despesas</h1>
+    <div id="status-sync">⏳ Carregando...</div>
 
     <form id="form">
       <div class="form-row">
@@ -303,6 +225,7 @@
       <button onclick="limparFiltro()">Limpar</button>
     </div>
 
+    <div id="carregando">Carregando suas despesas...</div>
     <div class="resumo" id="resumo">Carregando...</div>
 
     <h2>Despesas</h2>
@@ -341,6 +264,55 @@
     let despesas = [];
     let scriptCarregado = false;
 
+    // 📦 Funções de localStorage
+    function salvarLocal(despesas) {
+      try {
+        const dados = {
+          despesas,
+          timestamp: Date.now(),
+          userId: auth.currentUser.uid
+        };
+        localStorage.setItem("despesasCache", JSON.stringify(dados));
+      } catch (e) {
+        console.warn("Falha ao salvar no localStorage", e);
+      }
+    }
+
+    function carregarLocal() {
+      try {
+        const dados = localStorage.getItem("despesasCache");
+        if (!dados) return null;
+        const parsed = JSON.parse(dados);
+        const userUid = auth.currentUser?.uid;
+        if (!userUid || parsed.userId !== userUid) return null;
+        const umaSemana = 7 * 24 * 60 * 60 * 1000;
+        if (Date.now() - parsed.timestamp < umaSemana) {
+          return parsed.despesas;
+        }
+        return null;
+      } catch (e) {
+        console.warn("Erro ao ler localStorage", e);
+        return null;
+      }
+    }
+
+    function setStatus(msg, cor = "#777") {
+      const el = document.getElementById("status-sync");
+      el.textContent = msg;
+      el.style.color = cor;
+    }
+
+    // 🚀 Carrega do cache imediatamente
+    const cache = carregarLocal();
+    if (cache) {
+      despesas = cache;
+      render();
+      atualizarResumo();
+      document.getElementById("carregando").textContent = "Sincronizando com a nuvem...";
+      setStatus("🔄 Usando cache local", "#f39c12");
+    }
+
+    // 🔁 Sincroniza com o Firebase
     onSnapshot(despesasCollection, (snapshot) => {
       const userUid = auth.currentUser?.uid;
       if (!userUid) return;
@@ -348,8 +320,17 @@
       despesas = snapshot.docs
         .filter(doc => doc.data().userId === userUid)
         .map(doc => ({ id: doc.id, ...doc.data() }));
+
+      salvarLocal(despesas); // ✅ Salva no localStorage
+      document.getElementById("carregando").style.display = "none";
       render();
       atualizarResumo();
+      setStatus("✅ Sincronizado com a nuvem", "#27ae60");
+    }, (error) => {
+      console.error("Erro ao carregar do Firestore:", error);
+      document.getElementById("carregando").textContent = "⚠️ Offline: usando cache local";
+      document.getElementById("carregando").style.color = "#f39c12";
+      setStatus("⚠️ Offline", "#e67e22");
     });
 
     function formatDate(date) {
@@ -375,7 +356,7 @@
     };
 
     window.excluirDespesa = async function (despesaId) {
-      if (confirm("Tem certeza que deseja excluir esta despesa?")) {
+      if (confirm("Excluir esta despesa?")) {
         try {
           await deleteDoc(doc(db, "despesas", despesaId));
         } catch (error) {
@@ -421,8 +402,7 @@
         const div = document.createElement("div");
         div.className = "despesa";
         div.innerHTML = `
-          <div>
-            <strong>${d.desc}</strong>
+          <div><strong>${d.desc}</strong><br>
             <small>${d.parcelas.length}x de R$ ${(d.total / d.parcelas.length).toFixed(2)}</small><br>
             <span class="total">Total: R$ ${d.total.toFixed(2)}</span>
           </div>
@@ -489,7 +469,7 @@
       const dataStr = document.getElementById("data").value;
 
       if (!desc || isNaN(valorParcela) || valorParcela <= 0 || !dataStr) {
-        alert("Preencha todos os campos corretamente.");
+        alert("Preencha todos os campos.");
         return;
       }
 
@@ -533,6 +513,7 @@
     window.logout = async () => {
       await signOut(auth);
       localStorage.removeItem("userLoggedIn");
+      localStorage.removeItem("despesasCache");
       window.location.href = "login.html";
     };
   </script>
