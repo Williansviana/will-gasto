@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - Controle de Despesas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #333;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px 25px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .login-header h1 {
+      font-size: 26px;
+      margin: 0 0 8px 0;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 20px;
+    }
+
+    .input-group {
+      position: relative;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 14px 14px 50px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.3s;
+    }
+
+    input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .forgot-password {
+      display: inline-block;
+      margin: 10px 0 16px;
+      font-size: 14px;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .forgot-password:hover {
+      text-decoration: underline;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-direction: column;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button.primary {
+      background: #007bff;
+      color: white;
+    }
+
+    button.primary:hover {
+      background: #0056b3;
+    }
+
+    button.outline {
+      background: transparent;
+      color: #007bff;
+      border: 1px solid #007bff;
+    }
+
+    button.outline:hover {
+      background: #e7f3ff;
+      border-color: #0056b3;
+      color: #0056b3;
+    }
+
+    .error-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .error-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    /* Responsividade */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 25px 20px;
+        border-radius: 12px;
+      }
+      .login-header h1 {
+        font-size: 24px;
+      }
+      input {
+        font-size: 14px;
+        padding: 12px 12px 12px 48px;
+      }
+      button {
+        font-size: 14px;
+        padding: 11px;
+      }
+      .button-group {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Controle de Despesas</h1>
+      <p>Entre com sua conta para continuar</p>
+    </div>
+
+    <div class="input-group">
+      <span class="input-icon">📧</span>
+      <input type="email" id="email" placeholder="Seu e-mail" required />
+    </div>
+
+    <div class="input-group">
+      <span class="input-icon">🔒</span>
+      <input type="password" id="senha" placeholder="Sua senha" required />
+    </div>
+
+    <a href="#" onclick="esqueciSenha(event)" class="forgot-password">
+      Esqueceu a senha?
+    </a>
+
+    <div class="button-group">
+      <button class="primary" onclick="login()">Entrar</button>
+      <button class="outline" onclick="registrar()">Registrar</button>
+    </div>
+
+    <p id="auth-error" class="error-message"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      sendPasswordResetEmail 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQMZg_PyiXZ0dRZK7q7ELdmnmXJZRKQu4",
+      authDomain: "financia-1.firebaseapp.com",
+      projectId: "financia-1",
+      storageBucket: "financia-1.firebasestorage.app",
+      messagingSenderId: "744474080905",
+      appId: "1:744474080905:web:a72d939b44ea7878c0b858"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    function showError(msg, success = false) {
+      const el = document.getElementById("auth-error");
+      el.textContent = msg;
+      el.className = `error-message show ${success ? 'success' : ''}`;
+    }
+
+    window.login = async () => {
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+
+      if (!email || !senha) return showError("Preencha e-mail e senha.");
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        localStorage.setItem("userLoggedIn", "true");
+        window.location.href = "index.html";
+      } catch (error) {
+        let msg = "Erro ao entrar.";
+        switch (error.code) {
+          case "auth/user-not-found": msg = "Usuário não encontrado."; break;
+          case "auth/wrong-password": msg = "Senha incorreta."; break;
+          case "auth/invalid-email": msg = "E-mail inválido."; break;
+          default: msg = error.message;
+        }
+        showError(msg);
+      }
+    };
+
+    window.registrar = async () => {
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+
+      if (!email || !senha) return showError("Preencha e-mail e senha.");
+      if (senha.length < 6) return showError("A senha deve ter pelo menos 6 caracteres.");
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, senha);
+        showError("Conta criada com sucesso! Faça login.", true);
+      } catch (error) {
+        let msg = "Erro ao registrar.";
+        if (error.code === "auth/email-already-in-use") msg = "Este e-mail já está em uso.";
+        else if (error.code === "auth/invalid-email") msg = "E-mail inválido.";
+        else msg = error.message;
+        showError(msg);
+      }
+    };
+
+    window.esqueciSenha = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      if (!email) return showError("Informe seu e-mail.");
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showError(`✅ E-mail de redefinição enviado para ${email}!`, true);
+      } catch (error) {
+        showError("E-mail não encontrado.");
+      }
+    };
+  </script>
+</body>
+</html>

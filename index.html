@@ -2,821 +2,538 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Finanças com Parcelas</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lexend:wght@500&display=swap" rel="stylesheet" />
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
+  <title>Controle de Despesas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --primary: #4f46e5;
-      --success: #10b981;
-      --danger: #ef4444;
-      --gray: #6b7280;
-      --dark: #1f2937;
-      --light: #f9fafb;
-      --border: #e5e7eb;
-      --shadow: 0 1px 3px rgba(0,0,0,0.1);
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
-      --radius: 12px;
-    }
-
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f8fafc;
-      color: var(--dark);
-      line-height: 1.5;
-      padding: 16px;
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 15px;
+      background: #f5f5f5;
+      color: #333;
     }
 
-    h1, h2, h3 {
-      font-family: 'Lexend', sans-serif;
-      font-weight: 600;
-    }
-
-    /* Cabeçalho */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logout-btn {
-      background: none;
-      border: none;
-      color: var(--danger);
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    /* Tela de login */
-    .login-box {
-      max-width: 400px;
-      margin: 80px auto;
-      background: white;
-      padding: 32px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-md);
-      text-align: center;
-    }
-
-    .login-title {
-      font-size: 22px;
-      margin-bottom: 16px;
-      color: var(--primary);
-    }
-
-    .login-desc {
-      font-size: 14px;
-      color: var(--gray);
-      margin-bottom: 24px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      margin-top: 12px;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #4338ca;
-    }
-
-    .btn-link {
-      background: none;
-      color: var(--primary);
-      text-decoration: underline;
-      font-size: 14px;
-      margin-top: 16px;
-      cursor: pointer;
-    }
-
-    /* App */
     .app {
-      display: none;
-    }
-
-    /* Resumo */
-    .summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .card {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
       background: white;
-      padding: 16px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
       text-align: center;
+      color: #333;
+      margin: 10px 0;
     }
 
-    .card-title {
-      font-size: 14px;
-      color: var(--gray);
+    h1 {
+      font-size: 24px;
     }
 
-    .card-value {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 8px 0;
+    form {
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      padding: 18px;
+      border-radius: 10px;
     }
 
-    .card.total .card-value { color: var(--dark); }
-    .card.paid .card-value { color: var(--success); }
-    .card.pending .card-value { color: var(--danger); }
-
-    /* Calendário Compacto */
-    .calendar-container {
-      background: white;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-
-    .calendar-header {
+    .form-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 12px;
-      background: #f1f5f9;
-      font-weight: 600;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .form-row > div {
+      flex: 1 1 200px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    input, button, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       font-size: 14px;
     }
 
-    .calendar-weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
+    button {
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button[type="submit"] {
+      background: #007bff;
+      color: white;
+      border: none;
+      font-weight: 500;
+    }
+
+    button[type="submit"]:hover {
+      background: #0056b3;
+    }
+
+    .filter-container {
       text-align: center;
-      padding: 6px 0;
-      background: #f8fafc;
-      font-size: 11px;
-      color: var(--gray);
+      margin: 15px 0;
     }
 
-    .calendar-weekdays span {
-      text-transform: uppercase;
-      font-size: 10px;
+    .filter-container input {
+      width: auto;
+      display: inline-block;
+      font-size: 14px;
     }
 
-    #calendar-dates {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      padding: 8px;
+    .filter-container button {
+      font-size: 14px;
+      padding: 8px 12px;
+      background: #6c757d;
+      color: white;
+      border: none;
     }
 
-    .calendar-day {
-      height: 36px;
+    .resumo {
+      text-align: center;
+      margin: 15px 0;
+      padding: 12px;
+      background: #e7f3ff;
+      border-radius: 8px;
+      font-weight: 500;
+      color: #004085;
+      font-size: 15px;
+    }
+
+    #lista {
+      margin-top: 10px;
+    }
+
+    .despesa, .parcela {
+      background: #fff;
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      cursor: pointer;
-      border-radius: 4px;
-      position: relative;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    .calendar-day.has-pending {
-      background: #fee2e2;
-      color: var(--danger);
+    .despesa {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
-    .calendar-day.all-paid {
-      background: #dcfce7;
-      color: var(--success);
+    .despesa > div {
+      width: 100%;
     }
 
-    .day-number {
-      font-weight: 500;
+    .despesa-actions {
+      align-self: flex-end;
     }
 
-    .day-amount {
-      font-size: 9px;
-      font-weight: 600;
-    }
-
-    /* Tooltip */
-    #tooltip {
-      position: absolute;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-shadow: var(--shadow-lg);
-      padding: 8px;
-      font-size: 13px;
-      z-index: 1000;
-      min-width: 180px;
-      color: var(--dark);
-      display: none;
-    }
-
-    /* Botão flutuante fixo */
-    .fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 56px;
-      height: 56px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 24px;
-      box-shadow: var(--shadow-lg);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: transform 0.2s;
-    }
-
-    .fab:hover {
-      transform: scale(1.05);
-    }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal {
-      background: white;
-      border-radius: var(--radius);
-      padding: 24px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .modal-header {
-      display: flex;
+    .parcela {
+      flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--dark);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: var(--gray);
-    }
-
-    .has-installments {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin: 12px 0;
       font-size: 14px;
     }
 
-    /* Notificação */
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
+    .parcela.paga {
+      text-decoration: line-through;
+      color: green;
+      background: #f0f8f0;
+    }
+
+    .total {
+      font-weight: bold;
+      color: #d9534f;
+      font-size: 15px;
+    }
+
+    .excluir-btn {
+      background: #d9534f !important;
+      color: white;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .msg {
+      text-align: center;
+      padding: 10px;
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
       border-radius: 8px;
-      color: white;
+      margin: 10px 0;
+      font-style: italic;
       font-size: 14px;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
     }
 
-    .notification.show {
-      opacity: 1;
-      transform: translateY(0);
+    .app-actions {
+      text-align: center;
+      margin: 20px 0;
     }
 
-    .notification.success { background: var(--success); }
-    .notification.error { background: var(--danger); }
+    .app-actions button {
+      margin: 0 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-    /* Loading */
-    .loading {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .btn-secondary {
+      background: #6c757d;
       color: white;
-      font-size: 18px;
-      z-index: 2000;
-      display: none;
     }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f4f6;
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .btn-secondary:hover {
+      background: #5a6268;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* Responsividade */
+    @media (max-width: 600px) {
+      body {
+        margin: 10px;
+      }
+
+      .app {
+        padding: 15px;
+        border-radius: 10px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      form {
+        padding: 15px;
+      }
+
+      .form-row > div {
+        flex: 1 1 100%;
+      }
+
+      input, button {
+        font-size: 14px;
+        padding: 9px;
+      }
+
+      .parcela {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .parcela button {
+        align-self: flex-start;
+        margin-top: 4px;
+      }
+
+      .app-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .app-actions button {
+        margin: 0;
+      }
+
+      .filter-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .filter-container input, .filter-container button {
+        width: 100%;
+        max-width: 250px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="app">
+    <h1>Controle de Despesas</h1>
 
-  <!-- Tela de Login -->
-  <div id="login-screen" class="login-box">
-    <div class="logo">💰 Finanças</div>
-    <h2 class="login-title">Controle seus gastos</h2>
-    <p class="login-desc">Acesse sua conta para começar</p>
-
-    <div class="form-group">
-      <input type="email" id="email" placeholder="E-mail" class="form-input" required />
-    </div>
-    <div class="form-group">
-      <input type="password" id="password" placeholder="Senha" class="form-input" required />
-    </div>
-    <button id="auth-btn" class="btn btn-primary">Entrar</button>
-    <button id="reset-btn" class="btn-link">Esqueci a senha</button>
-    <p style="margin-top: 16px; font-size: 14px; color: var(--gray);">
-      Não tem conta? <a href="#" id="toggle-mode" style="color: var(--primary);">Cadastrar</a>
-    </p>
-  </div>
-
-  <!-- App Principal -->
-  <div id="app" class="app">
-    <div class="header">
-      <div class="logo">💰 Finanças</div>
-      <button class="logout-btn" id="logout-btn">Sair</button>
-    </div>
-
-    <!-- Resumo -->
-    <div class="summary">
-      <div class="card total">
-        <div class="card-title">Total</div>
-        <div class="card-value" id="total-all">R$ 0,00</div>
+    <form id="form">
+      <div class="form-row">
+        <div>
+          <label for="desc">Descrição</label>
+          <input type="text" id="desc" placeholder="Ex: Assinatura" required />
+        </div>
+        <div>
+          <label for="valorParcela">Valor (R$)</label>
+          <input type="number" id="valorParcela" step="0.01" placeholder="50.00" required />
+        </div>
       </div>
-      <div class="card paid">
-        <div class="card-title">Pagos</div>
-        <div class="card-value" id="total-paid">R$ 0,00</div>
+      <div class="form-row">
+        <div>
+          <label for="parcelas">Parcelas</label>
+          <input type="number" id="parcelas" value="1" min="1" max="99" />
+        </div>
+        <div>
+          <label for="data">1ª Parcela</label>
+          <input type="date" id="data" required />
+        </div>
       </div>
-      <div class="card pending">
-        <div class="card-title">Pendentes</div>
-        <div class="card-value" id="total-pending">R$ 0,00</div>
-      </div>
+      <button type="submit">Adicionar Despesa</button>
+    </form>
+
+    <div class="filter-container">
+      <label for="filtroMes">Filtrar por mês:</label>
+      <input type="month" id="filtroMes" />
+      <button onclick="limparFiltro()">Limpar</button>
     </div>
 
-    <!-- Calendário Compacto -->
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <button id="prev-month">◀</button>
-        <span id="calendar-month-year">Julho 2024</span>
-        <button id="next-month">▶</button>
-      </div>
-      <div class="calendar-weekdays">
-        <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-      </div>
-      <div id="calendar-dates"></div>
-      <div id="tooltip"></div>
+    <div class="resumo" id="resumo">Carregando...</div>
+
+    <h2>Despesas</h2>
+    <div id="lista"></div>
+
+    <div class="app-actions">
+      <button onclick="exportarParaExcel()" class="btn-secondary">Exportar Excel</button>
+      <button onclick="logout()" class="excluir-btn">Sair</button>
     </div>
   </div>
 
-  <!-- Botão Flutuante Fixo -->
-  <button id="add-btn" class="fab">+</button>
+  <script type="module">
+    if (!localStorage.getItem("userLoggedIn")) {
+      window.location.href = "login.html";
+    }
 
-  <!-- Modal -->
-  <div id="modal" class="modal-overlay" style="display: none;">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modal-title">Nova Despesa</h3>
-        <button class="modal-close" id="close-modal">×</button>
-      </div>
-      <form id="transaction-form">
-        <div class="form-group">
-          <input type="text" id="description" placeholder="Descrição" class="form-input" required />
-        </div>
-        <div class="form-group">
-          <input type="number" id="amount" placeholder="Valor" step="0.01" class="form-input" required />
-        </div>
-        <div class="form-group">
-          <input type="date" id="date" class="form-input" required />
-        </div>
-        <div class="has-installments">
-          <input type="checkbox" id="has-installments" />
-          <label for="has-installments">💳 Parcelado</label>
-        </div>
-        <div id="installments-fields" style="display: none;">
-          <input type="number" id="installments" class="form-input" placeholder="Número de parcelas" min="2" max="60" value="2" />
-        </div>
-        <div class="form-group">
-          <select id="status" class="form-input">
-            <option value="paid">✅ Pago</option>
-            <option value="pending">⏳ Pendente</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button type="button" id="cancel-btn" class="btn" style="background: #dc2626; color: white;">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } 
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <!-- Notificação -->
-  <div id="notification" class="notification"></div>
-
-  <!-- Loading -->
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-  </div>
-
-  <script>
-    // 🔥 CONFIGURAÇÃO DO FIREBASE
     const firebaseConfig = {
-      apiKey: "AIzaSyAjgQTdQmo63-0mR8k1bVYsY0E8I7Iqbnk",
-      authDomain: "will-gasto.firebaseapp.com",
-      projectId: "will-gasto",
-      storageBucket: "will-gasto.firebasestorage.app",
-      messagingSenderId: "436819384776",
-      appId: "1:436819384776:web:37c4c1173c543c0d1dc8fd"
+      apiKey: "AIzaSyBQMZg_PyiXZ0dRZK7q7ELdmnmXJZRKQu4",
+      authDomain: "financia-1.firebaseapp.com",
+      projectId: "financia-1",
+      storageBucket: "financia-1.firebasestorage.app",
+      messagingSenderId: "744474080905",
+      appId: "1:744474080905:web:a72d939b44ea7878c0b858"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const despesasCollection = collection(db, "despesas");
 
-    // Elementos
-    const $ = id => document.getElementById(id);
-    const loginScreen = $('login-screen');
-    const app = $('app');
-    const addBtn = $('add-btn');
+    let despesas = [];
+    let scriptCarregado = false;
 
-    // Estado
-    let transactions = [];
-    let transactionsByDate = {};
-    let currentDate = new Date();
+    onSnapshot(despesasCollection, (snapshot) => {
+      const userUid = auth.currentUser?.uid;
+      if (!userUid) return;
 
-    // Funções auxiliares
-    function notify(msg, type = 'success') {
-      const n = $('notification');
-      n.textContent = msg;
-      n.className = `notification ${type}`;
-      n.classList.add('show');
-      setTimeout(() => n.classList.remove('show'), 3000);
-    }
-
-    function setLoading(loading) {
-      $('loading').style.display = loading ? 'flex' : 'none';
-    }
-
-    function formatCurrency(value) {
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    }
-
-    function formatDate(dateStr) {
-      return new Date(dateStr).toLocaleDateString('pt-BR');
-    }
-
-    // === TELA DE LOGIN/CADASTRO ===
-    $('toggle-mode').onclick = () => {
-      const isLoginMode = $('auth-btn').textContent === 'Entrar';
-      $('auth-btn').textContent = isLoginMode ? 'Cadastrar' : 'Entrar';
-      $('toggle-mode').textContent = isLoginMode ? 'Já tenho conta' : 'Cadastrar';
-    };
-
-    $('auth-btn').onclick = async () => {
-      const email = $('email').value.trim();
-      const password = $('password').value;
-
-      if (!email || !password) {
-        notify('Preencha todos os campos', 'error');
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        if ($('auth-btn').textContent === 'Entrar') {
-          const result = await auth.signInWithEmailAndPassword(email, password);
-          const user = result.user;
-          if (!user.emailVerified) {
-            await auth.signOut();
-            notify('Verifique seu e-mail antes de continuar.', 'error');
-          }
-        } else {
-          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-          const user = userCredential.user;
-          await user.sendEmailVerification();
-          await db.collection('users').doc(user.uid).set({ email });
-          notify('Conta criada! Verifique seu e-mail.');
-        }
-      } catch (error) {
-        notify(error.message, 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    $('reset-btn').onclick = async () => {
-      const email = $('email').value.trim();
-      if (!email) {
-        notify('Digite seu e-mail', 'error');
-        return;
-      }
-      try {
-        await auth.sendPasswordResetEmail(email);
-        notify('Link de recuperação enviado!');
-      } catch (error) {
-        notify(error.message, 'error');
-      }
-    };
-
-    // === APP PRINCIPAL ===
-    $('logout-btn').onclick = async () => {
-      setLoading(true);
-      await auth.signOut();
-      notify('Até logo!');
-      setLoading(false);
-    };
-
-    auth.onAuthStateChanged(async (user) => {
-      if (user && user.emailVerified) {
-        loginScreen.style.display = 'none';
-        app.style.display = 'block';
-        addBtn.style.display = 'flex';
-        loadTransactions(user.uid);
-      } else if (user && !user.emailVerified) {
-        await auth.signOut();
-        notify('Verifique seu e-mail para continuar.', 'error');
-      } else {
-        app.style.display = 'none';
-        addBtn.style.display = 'none';
-        loginScreen.style.display = 'block';
-      }
-      setLoading(false);
+      despesas = snapshot.docs
+        .filter(doc => doc.data().userId === userUid)
+        .map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
+      atualizarResumo();
     });
 
-    function loadTransactions(userId) {
-      const ref = db.collection('users').doc(userId).collection('transactions');
-      ref.onSnapshot(snapshot => {
-        transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        updateTotals();
-        updateCalendarData();
-      });
+    function formatDate(date) {
+      return new Date(date).toLocaleDateString("pt-BR");
     }
 
-    // Atualiza totais
-    function updateTotals() {
-      const total = transactions.reduce((sum, t) => sum + t.amount, 0);
-      const paid = transactions.filter(t => t.status === 'paid').reduce((sum, t) => sum + t.amount, 0);
-      const pending = total - paid;
-
-      $('total-all').textContent = formatCurrency(total);
-      $('total-paid').textContent = formatCurrency(paid);
-      $('total-pending').textContent = formatCurrency(pending);
+    function uid() {
+      return "_" + Math.random().toString(36).substr(2, 9);
     }
 
-    // === MODAL ===
-    $('add-btn').onclick = () => {
-      resetForm();
-      $('modal-title').textContent = 'Nova Despesa';
-      $('modal').style.display = 'flex';
+    window.pagarParcela = async function (despesaId, parcelaId) {
+      const d = despesas.find(x => x.id === despesaId);
+      if (!d) return;
+      const p = d.parcelas.find(x => x.id === parcelaId);
+      if (p && !p.paid) {
+        p.paid = true;
+        try {
+          await updateDoc(doc(db, "despesas", despesaId), { parcelas: d.parcelas });
+        } catch (error) {
+          alert("Erro ao atualizar: " + error.message);
+        }
+      }
     };
 
-    $('close-modal').onclick = () => $('modal').style.display = 'none';
-    $('cancel-btn').onclick = () => $('modal').style.display = 'none';
-
-    $('has-installments').onchange = () => {
-      $('installments-fields').style.display = $('has-installments').checked ? 'block' : 'none';
+    window.excluirDespesa = async function (despesaId) {
+      if (confirm("Tem certeza que deseja excluir esta despesa?")) {
+        try {
+          await deleteDoc(doc(db, "despesas", despesaId));
+        } catch (error) {
+          alert("Erro ao excluir: " + error.message);
+        }
+      }
     };
 
-    function resetForm() {
-      $('transaction-form').reset();
-      $('date').value = new Date().toISOString().slice(0, 10);
-      $('has-installments').checked = false;
-      $('installments-fields').style.display = 'none';
+    function atualizarResumo() {
+      const total = despesas.flatMap(d => d.parcelas)
+        .filter(p => !p.paid)
+        .reduce((sum, p) => sum + parseFloat(p.value), 0);
+      document.getElementById("resumo").innerHTML = `
+        <strong>Total em aberto:</strong> R$ ${total.toFixed(2)}
+      `;
     }
 
-    $('transaction-form').onsubmit = async (e) => {
-      e.preventDefault();
-      const user = auth.currentUser;
-      const desc = $('description').value.trim();
-      const amount = parseFloat($('amount').value);
-      const date = $('date').value;
-      const status = $('status').value;
-      const isInstallment = $('has-installments').checked;
-      const installmentsCount = parseInt($('installments').value) || 1;
+    function render() {
+      const filtroMes = document.getElementById("filtroMes").value;
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
 
-      if (!desc || isNaN(amount) || amount <= 0 || !date) {
-        notify('Preencha todos os campos!', 'error');
+      let despesasFiltradas = despesas;
+
+      if (filtroMes) {
+        const [ano, mes] = filtroMes.split("-").map(Number);
+        despesasFiltradas = despesas.filter(d =>
+          d.parcelas.some(p => {
+            const data = new Date(p.date);
+            return data.getFullYear() === ano && data.getMonth() === mes - 1;
+          })
+        );
+      }
+
+      despesasFiltradas.sort((a, b) => new Date(a.parcelas[0].date) - new Date(b.parcelas[0].date));
+
+      if (despesasFiltradas.length === 0) {
+        lista.innerHTML = "<p style='text-align: center; color: #777;'>Nenhuma despesa encontrada.</p>";
         return;
       }
 
-      try {
-        if (isInstallment && installmentsCount > 1) {
-          const baseDate = new Date(date);
-          const originalId = Date.now().toString();
-
-          for (let i = 0; i < installmentsCount; i++) {
-            const installmentDate = new Date(baseDate);
-            installmentDate.setMonth(baseDate.getMonth() + i);
-            // Corrige datas inválidas (ex: 31/02)
-            if (installmentDate.getDate() !== baseDate.getDate()) {
-              installmentDate.setDate(0); // último dia do mês anterior
-            }
-
-            const formattedDate = installmentDate.toISOString().slice(0, 10);
-
-            await db.collection('users').doc(user.uid).collection('transactions').add({
-              description: `${desc} (${i+1}/${installmentsCount})`,
-              amount,
-              date: formattedDate,
-              status: i === 0 ? status : 'pending',
-              installments: { total: installmentsCount, current: i + 1, originalId }
-            });
-          }
-          notify(`${installmentsCount} parcelas criadas!`);
-        } else {
-          await db.collection('users').doc(user.uid).collection('transactions').add({
-            description: desc,
-            amount,
-            date,
-            status
-          });
-          notify('Despesa salva!');
-        }
-
-        $('modal').style.display = 'none';
-      } catch (error) {
-        notify('Erro ao salvar', 'error');
-      }
-    };
-
-    // === CALENDÁRIO ===
-    function updateCalendarData() {
-      transactionsByDate = {};
-      transactions.forEach(t => {
-        if (!transactionsByDate[t.date]) transactionsByDate[t.date] = [];
-        transactionsByDate[t.date].push(t);
-      });
-      renderCalendar();
-    }
-
-    function renderCalendar() {
-      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      $('calendar-month-year').textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      const datesEl = $('calendar-dates');
-      datesEl.innerHTML = '';
-
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement('div');
-        empty.style.height = '36px';
-        datesEl.appendChild(empty);
-      }
-
-      const tooltip = $('tooltip');
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayEl = document.createElement('div');
-        dayEl.className = 'calendar-day';
-
-        const dayTransactions = transactionsByDate[dateStr] || [];
-        const dayTotal = dayTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-        dayEl.innerHTML = `
-          <div class="day-number">${day}</div>
-          <div class="day-amount">${dayTotal > 0 ? formatCurrency(dayTotal) : ''}</div>
+      despesasFiltradas.forEach(d => {
+        const div = document.createElement("div");
+        div.className = "despesa";
+        div.innerHTML = `
+          <div>
+            <strong>${d.desc}</strong>
+            <small>${d.parcelas.length}x de R$ ${(d.total / d.parcelas.length).toFixed(2)}</small><br>
+            <span class="total">Total: R$ ${d.total.toFixed(2)}</span>
+          </div>
+          <div class="despesa-actions">
+            <button onclick="excluirDespesa('${d.id}')" class="excluir-btn">Excluir</button>
+          </div>
         `;
+        lista.appendChild(div);
 
-        if (dayTransactions.length > 0) {
-          const allPaid = dayTransactions.every(t => t.status === 'paid');
-          if (allPaid) {
-            dayEl.classList.add('all-paid');
-          } else {
-            dayEl.classList.add('has-pending');
-          }
-        }
+        d.parcelas.forEach(p => {
+          const pDiv = document.createElement("div");
+          pDiv.className = "parcela" + (p.paid ? " paga" : "");
+          pDiv.innerHTML = `
+            <div>
+              <span>${p.num}ª de ${p.total} - ${formatDate(p.date)}</span>
+              <span>R$ ${parseFloat(p.value).toFixed(2)}</span>
+            </div>
+            <button onclick="pagarParcela('${d.id}','${p.id}')" ${p.paid ? 'disabled' : ''}>
+              ${p.paid ? 'Pago' : 'Pagar'}
+            </button>
+          `;
+          lista.appendChild(pDiv);
+        });
+      });
 
-        // Tooltip
-        dayEl.onmouseenter = (e) => {
-          if (dayTransactions.length === 0) return;
-          const content = dayTransactions
-            .map(t => `<div><strong>${t.description}</strong>: ${formatCurrency(t.amount)} (${t.status === 'paid' ? 'Pago' : 'Pendente'})</div>`)
-            .join('');
-          tooltip.innerHTML = content;
-          tooltip.style.display = 'block';
-          tooltip.style.left = `${e.pageX + 10}px`;
-          tooltip.style.top = `${e.pageY + 10}px`;
-        };
-
-        dayEl.onmousemove = (e) => {
-          tooltip.style.left = `${e.pageX + 10}px`;
-          tooltip.style.top = `${e.pageY + 10}px`;
-        };
-
-        dayEl.onmouseleave = () => {
-          tooltip.style.display = 'none';
-        };
-
-        datesEl.appendChild(dayEl);
-      }
+      atualizarResumo();
     }
 
-    // Navegação no calendário
-    $('prev-month').onclick = () => {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
+    window.limparFiltro = () => {
+      document.getElementById("filtroMes").value = "";
+      render();
     };
 
-    $('next-month').onclick = () => {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar();
+    window.exportarParaExcel = async function () {
+      if (window.XLSX) return gerarPlanilha();
+      if (scriptCarregado) return;
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      s.onload = () => { window.XLSX = XLSX; gerarPlanilha(); };
+      document.head.appendChild(s);
+      scriptCarregado = true;
     };
 
-    // Inicialização
-    window.onload = () => {
-      resetForm();
-      renderCalendar();
+    function gerarPlanilha() {
+      const wb = XLSX.utils.book_new();
+      const data = [];
+      despesas.forEach(d => d.parcelas.forEach(p => data.push({
+        "Descrição": d.desc,
+        "Parcela": `${p.num}/${p.total}`,
+        "Data": p.date,
+        "Valor (R$)": p.value.toFixed(2),
+        "Status": p.paid ? "Pago" : "Pendente"
+      })));
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, "Parcelas");
+      XLSX.writeFile(wb, `despesas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const desc = document.getElementById("desc").value.trim();
+      const valorParcela = parseFloat(document.getElementById("valorParcela").value);
+      const numParcelas = parseInt(document.getElementById("parcelas").value);
+      const dataStr = document.getElementById("data").value;
+
+      if (!desc || isNaN(valorParcela) || valorParcela <= 0 || !dataStr) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+      }
+
+      const [y, m, d] = dataStr.split("-").map(Number);
+      const parcelas = [];
+      for (let i = 0; i < numParcelas; i++) {
+        const dataParcela = new Date(y, m - 1 + i, d);
+        if (dataParcela.getDate() !== d) {
+          alert(`Parcela ${i+1} inválida.`);
+          return;
+        }
+        parcelas.push({
+          id: uid(),
+          num: i + 1,
+          total: numParcelas,
+          value: valorParcela,
+          date: dataParcela.toISOString().slice(0, 10),
+          paid: false
+        });
+      }
+
+      try {
+        await addDoc(despesasCollection, {
+          desc,
+          total: valorParcela * numParcelas,
+          parcelas,
+          userId: auth.currentUser.uid
+        });
+
+        const msg = document.createElement("div");
+        msg.className = "msg";
+        msg.textContent = `✅ Despesa "${desc}" adicionada!`;
+        document.querySelector("form").after(msg);
+        setTimeout(() => msg.remove(), 3000);
+        e.target.reset();
+      } catch (error) {
+        alert("Erro: " + error.message);
+      }
+    });
+
+    window.logout = async () => {
+      await signOut(auth);
+      localStorage.removeItem("userLoggedIn");
+      window.location.href = "login.html";
     };
   </script>
 </body>
