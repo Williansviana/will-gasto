@@ -238,15 +238,24 @@
   </div>
 
   <script type="module">
+    // 🔒 Proteção: se não estiver logado, volta para login
     if (!localStorage.getItem("userLoggedIn")) {
       window.location.href = "login.html";
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } 
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      onSnapshot, 
+      deleteDoc, 
+      doc, 
+      updateDoc 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+    // 🔧 Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBQMZg_PyiXZ0dRZK7q7ELdmnmXJZRKQu4",
       authDomain: "financia-1.firebaseapp.com",
@@ -256,11 +265,13 @@
       appId: "1:744474080905:web:a72d939b44ea7878c0b858"
     };
 
+    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const despesasCollection = collection(db, "despesas");
 
+    // Variáveis
     let despesas = [];
     let scriptCarregado = false;
 
@@ -270,11 +281,11 @@
         const dados = {
           despesas,
           timestamp: Date.now(),
-          userId: auth.currentUser.uid
+          userId: auth.currentUser?.uid
         };
         localStorage.setItem("despesasCache", JSON.stringify(dados));
       } catch (e) {
-        console.warn("Falha ao salvar no localStorage", e);
+        console.warn("Erro ao salvar no localStorage", e);
       }
     }
 
@@ -298,49 +309,63 @@
 
     function setStatus(msg, cor = "#777") {
       const el = document.getElementById("status-sync");
-      el.textContent = msg;
-      el.style.color = cor;
+      if (el) el.textContent = msg, el.style.color = cor;
     }
 
-    // 🚀 Carrega do cache imediatamente
-    const cache = carregarLocal();
-    if (cache) {
-      despesas = cache;
-      render();
-      atualizarResumo();
-      document.getElementById("carregando").textContent = "Sincronizando com a nuvem...";
-      setStatus("🔄 Usando cache local", "#f39c12");
-    }
+    // 🔁 Observar login
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("🟢 Usuário autenticado:", user.uid);
 
-    // 🔁 Sincroniza com o Firebase
-    onSnapshot(despesasCollection, (snapshot) => {
-      const userUid = auth.currentUser?.uid;
-      if (!userUid) return;
+        // Carregar cache local imediatamente
+        const cache = carregarLocal();
+        if (cache) {
+          despesas = cache;
+          render();
+          atualizarResumo();
+          document.getElementById("carregando").textContent = "🔄 Sincronizando com a nuvem...";
+          setStatus("🔄 Usando cache local", "#f39c12");
+        }
 
-      despesas = snapshot.docs
-        .filter(doc => doc.data().userId === userUid)
-        .map(doc => ({ id: doc.id, ...doc.data() }));
-
-      salvarLocal(despesas); // ✅ Salva no localStorage
-      document.getElementById("carregando").style.display = "none";
-      render();
-      atualizarResumo();
-      setStatus("✅ Sincronizado com a nuvem", "#27ae60");
-    }, (error) => {
-      console.error("Erro ao carregar do Firestore:", error);
-      document.getElementById("carregando").textContent = "⚠️ Offline: usando cache local";
-      document.getElementById("carregando").style.color = "#f39c12";
-      setStatus("⚠️ Offline", "#e67e22");
+        // Conectar ao Firestore
+        onSnapshot(despesasCollection, (snapshot) => {
+          despesas = [];
+          snapshot.docChanges().forEach(change => {
+            const data = change.doc.data();
+            if (data.userId === user.uid) {
+              if (change.type === "added" || change.type === "modified") {
+                despesas.push({ id: change.doc.id, ...data });
+              } else if (change.type === "removed") {
+                despesas = despesas.filter(d => d.id !== change.doc.id);
+              }
+            }
+          });
+          salvarLocal(despesas);
+          document.getElementById("carregando").style.display = "none";
+          render();
+          atualizarResumo();
+          setStatus("✅ Sincronizado com a nuvem", "#27ae60");
+        }, (error) => {
+          console.error("❌ Erro ao escutar Firestore:", error);
+          setStatus("⚠️ Offline (usando cache)", "#e67e22");
+        });
+      } else {
+        console.log("🔴 Nenhum usuário logado");
+        window.location.href = "login.html";
+      }
     });
 
+    // ✏️ Formatar data
     function formatDate(date) {
       return new Date(date).toLocaleDateString("pt-BR");
     }
 
+    // 🔢 ID único
     function uid() {
       return "_" + Math.random().toString(36).substr(2, 9);
     }
 
+    // ✅ Pagar parcela
     window.pagarParcela = async function (despesaId, parcelaId) {
       const d = despesas.find(x => x.id === despesaId);
       if (!d) return;
@@ -355,6 +380,7 @@
       }
     };
 
+    // 🗑️ Excluir despesa
     window.excluirDespesa = async function (despesaId) {
       if (confirm("Excluir esta despesa?")) {
         try {
@@ -365,6 +391,7 @@
       }
     };
 
+    // 📊 Resumo
     function atualizarResumo() {
       const total = despesas.flatMap(d => d.parcelas)
         .filter(p => !p.paid)
@@ -374,9 +401,11 @@
       `;
     }
 
+    // 🔍 Renderizar
     function render() {
-      const filtroMes = document.getElementById("filtroMes").value;
+      const filtroMes = document.getElementById("filtroMes")?.value;
       const lista = document.getElementById("lista");
+      if (!lista) return;
       lista.innerHTML = "";
 
       let despesasFiltradas = despesas;
@@ -402,7 +431,8 @@
         const div = document.createElement("div");
         div.className = "despesa";
         div.innerHTML = `
-          <div><strong>${d.desc}</strong><br>
+          <div>
+            <strong>${d.desc}</strong><br>
             <small>${d.parcelas.length}x de R$ ${(d.total / d.parcelas.length).toFixed(2)}</small><br>
             <span class="total">Total: R$ ${d.total.toFixed(2)}</span>
           </div>
@@ -432,16 +462,19 @@
     }
 
     window.limparFiltro = () => {
-      document.getElementById("filtroMes").value = "";
+      const el = document.getElementById("filtroMes");
+      if (el) el.value = "";
       render();
     };
 
+    // 📥 Exportar Excel
     window.exportarParaExcel = async function () {
       if (window.XLSX) return gerarPlanilha();
       if (scriptCarregado) return;
       const s = document.createElement("script");
       s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
       s.onload = () => { window.XLSX = XLSX; gerarPlanilha(); };
+      s.onerror = () => alert("Erro ao carregar Excel.");
       document.head.appendChild(s);
       scriptCarregado = true;
     };
@@ -461,6 +494,7 @@
       XLSX.writeFile(wb, `despesas_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
+    // 📥 Adicionar despesa
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const desc = document.getElementById("desc").value.trim();
@@ -468,18 +502,21 @@
       const numParcelas = parseInt(document.getElementById("parcelas").value);
       const dataStr = document.getElementById("data").value;
 
-      if (!desc || isNaN(valorParcela) || valorParcela <= 0 || !dataStr) {
-        alert("Preencha todos os campos.");
-        return;
-      }
+      if (!desc) return alert("Descrição é obrigatória.");
+      if (isNaN(valorParcela) || valorParcela <= 0) return alert("Valor inválido.");
+      if (!dataStr) return alert("Data é obrigatória.");
 
       const [y, m, d] = dataStr.split("-").map(Number);
+      const dataInicial = new Date(y, m - 1, d);
+      if (dataInicial.getDate() !== d || dataInicial.getMonth() !== m - 1) {
+        return alert("Data inicial inválida.");
+      }
+
       const parcelas = [];
       for (let i = 0; i < numParcelas; i++) {
         const dataParcela = new Date(y, m - 1 + i, d);
         if (dataParcela.getDate() !== d) {
-          alert(`Parcela ${i+1} inválida.`);
-          return;
+          return alert(`Parcela ${i+1} inválida.`);
         }
         parcelas.push({
           id: uid(),
@@ -491,12 +528,18 @@
         });
       }
 
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        alert("Erro: não autenticado.");
+        return;
+      }
+
       try {
         await addDoc(despesasCollection, {
           desc,
           total: valorParcela * numParcelas,
           parcelas,
-          userId: auth.currentUser.uid
+          userId: currentUser.uid
         });
 
         const msg = document.createElement("div");
@@ -506,15 +549,21 @@
         setTimeout(() => msg.remove(), 3000);
         e.target.reset();
       } catch (error) {
-        alert("Erro: " + error.message);
+        console.error("❌ Erro ao salvar no Firestore:", error);
+        alert("Erro ao salvar: " + error.message);
       }
     });
 
+    // 🔐 Logout
     window.logout = async () => {
-      await signOut(auth);
-      localStorage.removeItem("userLoggedIn");
-      localStorage.removeItem("despesasCache");
-      window.location.href = "login.html";
+      try {
+        await signOut(auth);
+        localStorage.removeItem("userLoggedIn");
+        localStorage.removeItem("despesasCache");
+        window.location.href = "login.html";
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
