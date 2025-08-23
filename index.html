@@ -138,13 +138,20 @@
     .msg {
       text-align: center;
       padding: 10px;
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
       border-radius: 8px;
       margin: 10px 0;
       font-style: italic;
       font-size: 14px;
+    }
+    .msg.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .msg.warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
     }
     .app-actions {
       text-align: center;
@@ -312,57 +319,76 @@
       if (el) el.textContent = msg, el.style.color = cor;
     }
 
+    // 🔔 Verificar parcelas vencidas
+    function verificarVencidas() {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const vencidas = despesas.flatMap(d => d.parcelas)
+        .filter(p => !p.paid)
+        .filter(p => new Date(p.date) < hoje);
+
+      if (vencidas.length > 0) {
+        const msg = document.createElement("div");
+        msg.className = "msg warning";
+        msg.textContent = `⚠️ Você tem ${vencidas.length} parcela(s) vencida(s)!`;
+        
+        const lista = document.getElementById("lista");
+        lista.parentNode.insertBefore(msg, lista);
+
+        setTimeout(() => msg.remove(), 5000);
+      }
+    }
+
     // 🔁 Observar login
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("🟢 Usuário autenticado:", user.uid);
 
-        // Carregar cache local imediatamente
         const cache = carregarLocal();
         if (cache) {
           despesas = cache;
           render();
           atualizarResumo();
+          verificarVencidas();
           document.getElementById("carregando").textContent = "🔄 Sincronizando com a nuvem...";
           setStatus("🔄 Usando cache local", "#f39c12");
         }
 
-        // Conectar ao Firestore
         onSnapshot(despesasCollection, (snapshot) => {
-          despesas = [];
-          snapshot.docChanges().forEach(change => {
-            const data = change.doc.data();
+          const novasDespesas = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
             if (data.userId === user.uid) {
-              if (change.type === "added" || change.type === "modified") {
-                despesas.push({ id: change.doc.id, ...data });
-              } else if (change.type === "removed") {
-                despesas = despesas.filter(d => d.id !== change.doc.id);
-              }
+              novasDespesas.push({ id: doc.id, ...data });
             }
           });
+
+          despesas = novasDespesas;
           salvarLocal(despesas);
           document.getElementById("carregando").style.display = "none";
           render();
           atualizarResumo();
+          verificarVencidas();
           setStatus("✅ Sincronizado com a nuvem", "#27ae60");
         }, (error) => {
           console.error("❌ Erro ao escutar Firestore:", error);
           setStatus("⚠️ Offline (usando cache)", "#e67e22");
+          if (cache) verificarVencidas();
         });
       } else {
-        console.log("🔴 Nenhum usuário logado");
         window.location.href = "login.html";
       }
     });
 
-    // ✏️ Formatar data
+    // ✏️ Formatar data (não usado para salvar, só exibir)
     function formatDate(date) {
       return new Date(date).toLocaleDateString("pt-BR");
     }
 
     // 🔢 ID único
     function uid() {
-      return "_" + Math.random().toString(36).substr(2, 9);
+      return "_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
     }
 
     // ✅ Pagar parcela
@@ -512,18 +538,30 @@
         return alert("Data inicial inválida.");
       }
 
+      // ✅ Geração corrigida das parcelas (com fuso certo)
       const parcelas = [];
       for (let i = 0; i < numParcelas; i++) {
         const dataParcela = new Date(y, m - 1 + i, d);
-        if (dataParcela.getDate() !== d) {
-          return alert(`Parcela ${i+1} inválida.`);
+        const diaGerado = dataParcela.getDate();
+
+        if (diaGerado !== d) {
+          const ultimoDia = new Date(y, m + i, 0);
+          dataParcela.setTime(ultimoDia.getTime());
         }
+
+        // ✅ Correção do fuso horário: formata manualmente
+        const dataFormatada = [
+          dataParcela.getFullYear(),
+          String(dataParcela.getMonth() + 1).padStart(2, '0'),
+          String(dataParcela.getDate()).padStart(2, '0')
+        ].join('-');
+
         parcelas.push({
           id: uid(),
           num: i + 1,
           total: numParcelas,
           value: valorParcela,
-          date: dataParcela.toISOString().slice(0, 10),
+          date: dataFormatada,
           paid: false
         });
       }
@@ -543,13 +581,13 @@
         });
 
         const msg = document.createElement("div");
-        msg.className = "msg";
+        msg.className = "msg success";
         msg.textContent = `✅ Despesa "${desc}" adicionada!`;
         document.querySelector("form").after(msg);
         setTimeout(() => msg.remove(), 3000);
         e.target.reset();
       } catch (error) {
-        console.error("❌ Erro ao salvar no Firestore:", error);
+        console.error("❌ Erro ao salvar:", error);
         alert("Erro ao salvar: " + error.message);
       }
     });
