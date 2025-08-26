@@ -245,7 +245,6 @@
   </div>
 
   <script type="module">
-    // 🔒 Proteção: se não estiver logado, volta para login
     if (!localStorage.getItem("userLoggedIn")) {
       window.location.href = "login.html";
     }
@@ -262,7 +261,6 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // 🔧 Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBQMZg_PyiXZ0dRZK7q7ELdmnmXJZRKQu4",
       authDomain: "financia-1.firebaseapp.com",
@@ -272,17 +270,14 @@
       appId: "1:744474080905:web:a72d939b44ea7878c0b858"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const despesasCollection = collection(db, "despesas");
 
-    // Variáveis
     let despesas = [];
     let scriptCarregado = false;
 
-    // 📦 Funções de localStorage
     function salvarLocal(despesas) {
       try {
         const dados = {
@@ -319,7 +314,6 @@
       if (el) el.textContent = msg, el.style.color = cor;
     }
 
-    // 🔔 Verificar parcelas vencidas
     function verificarVencidas() {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -332,19 +326,14 @@
         const msg = document.createElement("div");
         msg.className = "msg warning";
         msg.textContent = `⚠️ Você tem ${vencidas.length} parcela(s) vencida(s)!`;
-        
         const lista = document.getElementById("lista");
         lista.parentNode.insertBefore(msg, lista);
-
         setTimeout(() => msg.remove(), 5000);
       }
     }
 
-    // 🔁 Observar login
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("🟢 Usuário autenticado:", user.uid);
-
+      if (user && user.emailVerified) {
         const cache = carregarLocal();
         if (cache) {
           despesas = cache;
@@ -363,7 +352,6 @@
               novasDespesas.push({ id: doc.id, ...data });
             }
           });
-
           despesas = novasDespesas;
           salvarLocal(despesas);
           document.getElementById("carregando").style.display = "none";
@@ -372,7 +360,6 @@
           verificarVencidas();
           setStatus("✅ Sincronizado com a nuvem", "#27ae60");
         }, (error) => {
-          console.error("❌ Erro ao escutar Firestore:", error);
           setStatus("⚠️ Offline (usando cache)", "#e67e22");
           if (cache) verificarVencidas();
         });
@@ -381,17 +368,14 @@
       }
     });
 
-    // ✏️ Formatar data (não usado para salvar, só exibir)
     function formatDate(date) {
       return new Date(date).toLocaleDateString("pt-BR");
     }
 
-    // 🔢 ID único
     function uid() {
       return "_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
     }
 
-    // ✅ Pagar parcela
     window.pagarParcela = async function (despesaId, parcelaId) {
       const d = despesas.find(x => x.id === despesaId);
       if (!d) return;
@@ -406,7 +390,6 @@
       }
     };
 
-    // 🗑️ Excluir despesa
     window.excluirDespesa = async function (despesaId) {
       if (confirm("Excluir esta despesa?")) {
         try {
@@ -417,7 +400,6 @@
       }
     };
 
-    // 📊 Resumo
     function atualizarResumo() {
       const total = despesas.flatMap(d => d.parcelas)
         .filter(p => !p.paid)
@@ -427,7 +409,6 @@
       `;
     }
 
-    // 🔍 Renderizar
     function render() {
       const filtroMes = document.getElementById("filtroMes")?.value;
       const lista = document.getElementById("lista");
@@ -493,7 +474,6 @@
       render();
     };
 
-    // 📥 Exportar Excel
     window.exportarParaExcel = async function () {
       if (window.XLSX) return gerarPlanilha();
       if (scriptCarregado) return;
@@ -520,7 +500,6 @@
       XLSX.writeFile(wb, `despesas_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
-    // 📥 Adicionar despesa
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const desc = document.getElementById("desc").value.trim();
@@ -538,23 +517,22 @@
         return alert("Data inicial inválida.");
       }
 
-      // ✅ Geração corrigida das parcelas (com fuso certo)
+      // ✅ Geração correta das parcelas
       const parcelas = [];
       for (let i = 0; i < numParcelas; i++) {
-        const dataParcela = new Date(y, m - 1 + i, d);
-        const diaGerado = dataParcela.getDate();
+        const mesAtual = m - 1 + i;
+        const dataParcela = new Date(y, mesAtual, d);
 
-        if (diaGerado !== d) {
-          const ultimoDia = new Date(y, m + i, 0);
-          dataParcela.setTime(ultimoDia.getTime());
+        // ✅ Ajusta para o último dia do mês se o dia não existir
+        if (dataParcela.getDate() !== d) {
+          dataParcela.setMonth(mesAtual + 1, 0); // último dia
         }
 
-        // ✅ Correção do fuso horário: formata manualmente
-        const dataFormatada = [
-          dataParcela.getFullYear(),
-          String(dataParcela.getMonth() + 1).padStart(2, '0'),
-          String(dataParcela.getDate()).padStart(2, '0')
-        ].join('-');
+        // ✅ Formata manualmente (sem fuso horário)
+        const dia = String(dataParcela.getDate()).padStart(2, '0');
+        const mes = String(dataParcela.getMonth() + 1).padStart(2, '0');
+        const ano = dataParcela.getFullYear();
+        const dataFormatada = `${ano}-${mes}-${dia}`;
 
         parcelas.push({
           id: uid(),
@@ -592,7 +570,6 @@
       }
     });
 
-    // 🔐 Logout
     window.logout = async () => {
       try {
         await signOut(auth);
