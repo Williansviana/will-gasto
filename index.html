@@ -146,10 +146,11 @@
   <div id="feedback" class="msg"></div>
 </div>
 
+<!-- Firebase SDK Atualizado (v12.11.0) -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAjgQTdQmo63-0mR8k1bVYsY0E8I7Iqbnk",
@@ -192,7 +193,6 @@
         userRes = await signInWithEmailAndPassword(auth, email, senha);
       } catch (err) {
         if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-          // Tenta criar conta se não encontrar ou falhar a primeira vez
           userRes = await createUserWithEmailAndPassword(auth, email, senha);
           await setDoc(doc(db, "usuarios", userRes.user.uid), { email, aprovado: false });
         } else { throw err; }
@@ -201,7 +201,7 @@
       const userDoc = await getDoc(doc(db, "usuarios", userRes.user.uid));
       
       if (userDoc.exists() && userDoc.data().aprovado === true) {
-        window.location.href = "index.html";
+        window.location.href = "dashboard.html";
       } else {
         fb.textContent = "✅ Conta pronta! Agora realize o pagamento para liberar.";
         fb.className = "msg success"; fb.style.display = "block";
