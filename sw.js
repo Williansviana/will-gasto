@@ -1,9 +1,9 @@
-const CACHE_NAME = 'viana-v3';
+const CACHE_NAME = 'viana-v4';
 const ASSETS = [
   './login.html',
   './index.html',
   './manifest.json',
-  './img/logo_oficial .png',
+  './img/logo_oficial.png',
 ];
 
 self.addEventListener('install', e => {
