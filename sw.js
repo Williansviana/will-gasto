@@ -6,7 +6,7 @@ const ASSETS = [
   './img/logo_oficial.png',
 ];
 
-self.addEventListener('install', e => {
+self.addEventListener('install' , e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
 });
 
