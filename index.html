@@ -223,29 +223,28 @@
     return parseFloat(numLimpo) || 0;
   };
 
+  // Guardião de Autenticação: redireciona para login.html se não autenticado
   onAuthStateChanged(auth, user => {
     if (user) {
       uid = user.uid;
       loadSalario();
       loadData();
     } else {
-      window.location.href = "login.html";
+      window.location.replace("login.html");
     }
   });
 
-  // Busca o salário do mês selecionado. Se não existir, busca o salário padrão do usuário.
+  // Busca o salário do mês ou pega o padrão replicado para todos os meses
   async function loadSalario() {
     if (!uid) return;
     const inputSalario = document.getElementById('input-salario');
     
-    // 1. Tenta carregar o salário específico do mês
     const salarioRef = doc(db, "salarios", `${uid}_${selectedMonth}`);
     const snap = await getDoc(salarioRef);
 
     if (snap.exists() && snap.data().valor !== undefined) {
       salarioAtual = snap.data().valor;
     } else {
-      // 2. Se não houver específico, busca o valor padrão geral cadastrado
       const padraoRef = doc(db, "salarios", `${uid}_padrao`);
       const snapPadrao = await getDoc(padraoRef);
       if (snapPadrao.exists() && snapPadrao.data().valor !== undefined) {
@@ -259,7 +258,7 @@
     render();
   }
 
-  // Atualiza o valor do salário e salva tanto para o mês específico quanto como salário padrão geral
+  // Atualização em tempo real do salário + Salvamento global para todos os meses
   const inputSalarioElem = document.getElementById('input-salario');
   inputSalarioElem.addEventListener('input', (e) => {
     let value = e.target.value.replace(/\D/g, '');
@@ -276,16 +275,13 @@
 
     recalcularResumoSemReRender();
 
-    // Grava o valor para o mês atual e define também como valor padrão global após 500ms
     clearTimeout(debounceSalarioTimeout);
     debounceSalarioTimeout = setTimeout(async () => {
       if (!uid) return;
       
-      // Salva no mês atual
       const salarioRef = doc(db, "salarios", `${uid}_${selectedMonth}`);
       await setDoc(salarioRef, { valor: salarioAtual, userId: uid, month: selectedMonth });
 
-      // Salva como padrão para todos os outros meses sem registro
       const padraoRef = doc(db, "salarios", `${uid}_padrao`);
       await setDoc(padraoRef, { valor: salarioAtual, userId: uid });
     }, 500);
