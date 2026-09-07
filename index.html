@@ -17,7 +17,9 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; }
-    .app { width: 100%; max-width: 420px; }
+    
+    /* Oculta o sistema por padrão para evitar a piscada de tela antes da verificação do login */
+    .app { width: 100%; max-width: 420px; display: none; }
 
     header { margin-bottom: 15px; text-align: center; }
     h1 { font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 15px; }
@@ -105,7 +107,7 @@
 </head>
 <body>
 
-<div class="app">
+<div class="app" id="app-container">
   <header>
     <h1>Viana Controle</h1>
     <div class="month-nav">
@@ -223,18 +225,20 @@
     return parseFloat(numLimpo) || 0;
   };
 
-  // Guardião de Autenticação: redireciona para login.html se não autenticado
+  // Verifica a autenticação ANTES de exibir qualquer elemento na tela
   onAuthStateChanged(auth, user => {
     if (user) {
       uid = user.uid;
+      // Exibe o app somente após confirmar que o usuário está logado
+      document.getElementById('app-container').style.display = 'block';
       loadSalario();
       loadData();
     } else {
+      // Redireciona imediatamente sem mostrar a tela do sistema
       window.location.replace("login.html");
     }
   });
 
-  // Busca o salário do mês ou pega o padrão replicado para todos os meses
   async function loadSalario() {
     if (!uid) return;
     const inputSalario = document.getElementById('input-salario');
@@ -258,7 +262,6 @@
     render();
   }
 
-  // Atualização em tempo real do salário + Salvamento global para todos os meses
   const inputSalarioElem = document.getElementById('input-salario');
   inputSalarioElem.addEventListener('input', (e) => {
     let value = e.target.value.replace(/\D/g, '');
