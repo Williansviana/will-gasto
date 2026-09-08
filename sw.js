@@ -2,7 +2,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 
 const auth = getAuth(app);
 
-// Monitora o estado de autenticação em tempo real
+// Monitora o estado  de autenticação em tempo real
 onAuthStateChanged(auth, user => {
   if (user) {
     // Usuário autenticado: inicializa o sistema
